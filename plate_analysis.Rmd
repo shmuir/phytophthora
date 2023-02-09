@@ -88,7 +88,7 @@ leveneTest(log_cfu ~ location, averages)
 ```
 Since p > 0.05 there is equal variance and we can perform an ANOVA.
 
-ANOVA and Tukey Test
+ANOVA
 ```{r}
 aov <- aov(log_cfu ~ location, averages)
 summary(aov)

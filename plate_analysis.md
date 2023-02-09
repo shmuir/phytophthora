@@ -56,7 +56,7 @@ leveneTest(log_cfu ~ location, averages)
 
 Since p \> 0.05 there is equal variance and we can perform an ANOVA.
 
-ANOVA and Tukey Test
+ANOVA
 
 ``` r
 aov <- aov(log_cfu ~ location, averages)
@@ -64,25 +64,7 @@ summary(aov)
 ```
 
     ##             Df Sum Sq Mean Sq F value   Pr(>F)    
-    ## location     3 1.3517  0.4506   12.97 6.25e-05 ***
-    ## Residuals   20 0.6946  0.0347                     
+    ## location     3  7.167  2.3889   12.97 6.25e-05 ***
+    ## Residuals   20  3.683  0.1841                     
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-TukeyHSD(aov)
-```
-
-    ##   Tukey multiple comparisons of means
-    ##     95% family-wise confidence level
-    ## 
-    ## Fit: aov(formula = log_cfu ~ location, data = averages)
-    ## 
-    ## $location
-    ##              diff          lwr        upr     p adj
-    ## CP-CM -0.40968195 -0.710838071 -0.1085258 0.0055904
-    ## NN-CM -0.59243764 -0.893593765 -0.2912815 0.0001189
-    ## PL-CM -0.09962162 -0.400777743  0.2015345 0.7914449
-    ## NN-CP -0.18275569 -0.483911819  0.1184004 0.3504202
-    ## PL-CP  0.31006033  0.008904202  0.6112165 0.0421714
-    ## PL-NN  0.49281602  0.191659896  0.7939721 0.0009629
