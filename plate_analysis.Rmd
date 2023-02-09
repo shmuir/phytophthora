@@ -34,7 +34,7 @@ Log transforming the data shows a more normal distribution for some of them? New
 phyto %>%
   filter(date_counted == "2022-11-22" | date_counted == "2022-11-14",
          dilution == "10-1") %>%
-ggplot(., aes(log10(`cfu/ml`), color = location)) +
+ggplot(., aes(log(`cfu/ml`), color = location)) +
   geom_density() +
   scale_color_viridis_d() +
   theme_linedraw()
@@ -56,7 +56,7 @@ phyto_salinity <- phyto %>%
   group_by(location, dilution) %>%
   filter(date_counted == "2022-11-22" | date_counted == "2022-11-14") %>%
   filter(dilution == "10-1") %>%
-  mutate(log_cfu = log10(cfu))
+  mutate(log_cfu = log(cfu))
 ```
 
 
@@ -92,7 +92,5 @@ ANOVA and Tukey Test
 ```{r}
 aov <- aov(log_cfu ~ location, averages)
 summary(aov)
-
-TukeyHSD(aov)
 ```
 
