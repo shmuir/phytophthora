@@ -1,0 +1,98 @@
+---
+title: "Phytophthora"
+author: "Sam Muir"
+date: "2022-12-16"
+output: github_document
+---
+
+```{r echo=FALSE, include=FALSE}
+library(tidyverse)
+library(viridis)
+library(car)
+```
+ 
+```{r echo=FALSE, include=FALSE}
+phyto <- read_csv("data/plate_counts.csv")
+salinity <- read_csv("soil_collection.csv")
+```
+
+## Initial data cleaning and plotting
+I filtered the data to only include the counts after 4 days for both trials, as well as only including the 10-1 dilution. Then, I plotted the data to check for normal distribution. The data appears to be skewed.
+```{r echo = FALSE}
+phyto %>%
+  filter(date_counted == "2022-11-22" | date_counted == "2022-11-14",
+         dilution == "10-1") %>%
+ggplot(., aes(`cfu/ml`, color = location)) +
+  geom_density() +
+  scale_color_viridis_d() +
+  theme_linedraw()
+```
+ 
+Log transforming the data shows a more normal distribution for some of them? Newtowne Neck is still skewed. 
+
+```{r echo = FALSE}
+phyto %>%
+  filter(date_counted == "2022-11-22" | date_counted == "2022-11-14",
+         dilution == "10-1") %>%
+ggplot(., aes(log10(`cfu/ml`), color = location)) +
+  geom_density() +
+  scale_color_viridis_d() +
+  theme_linedraw()
+```
+
+```{r echo=FALSE, include=FALSE}
+salinity <- salinity %>%
+  mutate(site = case_when(site == "chapman" ~ "CM",
+                          site == "chapel" ~ "CP",
+                          site == "point_lookout" ~ "PL",
+                          site == "newtowne" ~ "NN")) %>%
+  rename(location = site)
+```
+
+```{r echo=FALSE, include=FALSE}
+phyto_salinity <- phyto %>%
+  left_join(salinity) %>%
+  rename(cfu = `cfu/ml`) %>%
+  group_by(location, dilution) %>%
+  filter(date_counted == "2022-11-22" | date_counted == "2022-11-14") %>%
+  filter(dilution == "10-1") %>%
+  mutate(log_cfu = log10(cfu))
+```
+
+
+```{r finding averages, include=FALSE}
+averages <- phyto_salinity %>%
+  summarise(mean(log_cfu), sd(log_cfu)) %>%
+  left_join(phyto_salinity)
+```
+
+## Plotting Averages
+```{r}
+ggplot(averages, aes(location, `mean(log_cfu)`, fill = salinity_ppt)) +
+  geom_bar(position="dodge", stat = "identity", size = 0.8) +
+  geom_errorbar(aes(ymin=`mean(log_cfu)`-`sd(log_cfu)`, 
+                    ymax=`mean(log_cfu)`+`sd(log_cfu)`), 
+                width=0.2, linewidth = 0.5,
+                 position=position_dodge(.9)) +
+  theme_linedraw() +
+  scale_x_discrete(labels=c("CM" = "Chapman", "CP" = "Chapel Point",
+                              "NN" = "Newtowne Neck", "PL" = "Point Lookout")) +
+  labs(x = "", y = "Log of Mean cfu/mL", fill = "Salinity (ppt)") +
+  scale_fill_viridis(end = 0.8)
+```
+
+## Statistical Analysis
+Levene's Test
+```{r}
+leveneTest(log_cfu ~ location, averages)
+```
+Since p > 0.05 there is equal variance and we can perform an ANOVA.
+
+ANOVA and Tukey Test
+```{r}
+aov <- aov(log_cfu ~ location, averages)
+summary(aov)
+
+TukeyHSD(aov)
+```
+
