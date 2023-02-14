@@ -27,7 +27,7 @@ ggplot(averages, aes(location, `mean(log_cfu)`, fill = salinity_ppt)) +
   theme_linedraw() +
   scale_x_discrete(labels=c("CM" = "Chapman", "CP" = "Chapel Point",
                               "NN" = "Newtowne Neck", "PL" = "Point Lookout")) +
-  labs(x = "", y = "Log of Mean cfu/mL", fill = "Salinity (ppt)") +
+  labs(x = "", y = "Log of Mean cfu/g", fill = "Salinity (ppt)") +
   scale_fill_viridis(end = 0.8)
 ```
 
