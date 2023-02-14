@@ -22,7 +22,7 @@ I filtered the data to only include the counts after 4 days for both trials, as 
 phyto %>%
   filter(date_counted == "2022-11-22" | date_counted == "2022-11-14",
          dilution == "10-1") %>%
-ggplot(., aes(`cfu/ml`, color = location)) +
+ggplot(., aes(`cfu/g`, color = location)) +
   geom_density() +
   scale_color_viridis_d() +
   theme_linedraw()
@@ -34,7 +34,7 @@ Log transforming the data shows a more normal distribution for some of them? New
 phyto %>%
   filter(date_counted == "2022-11-22" | date_counted == "2022-11-14",
          dilution == "10-1") %>%
-ggplot(., aes(log(`cfu/ml`), color = location)) +
+ggplot(., aes(log(`cfu/g`), color = location)) +
   geom_density() +
   scale_color_viridis_d() +
   theme_linedraw()
@@ -52,7 +52,7 @@ salinity <- salinity %>%
 ```{r echo=FALSE, include=FALSE}
 phyto_salinity <- phyto %>%
   left_join(salinity) %>%
-  rename(cfu = `cfu/ml`) %>%
+  rename(cfu = `cfu/g`) %>%
   group_by(location, dilution) %>%
   filter(date_counted == "2022-11-22" | date_counted == "2022-11-14") %>%
   filter(dilution == "10-1") %>%
@@ -77,7 +77,7 @@ ggplot(averages, aes(location, `mean(log_cfu)`, fill = salinity_ppt)) +
   theme_linedraw() +
   scale_x_discrete(labels=c("CM" = "Chapman", "CP" = "Chapel Point",
                               "NN" = "Newtowne Neck", "PL" = "Point Lookout")) +
-  labs(x = "", y = "Log of Mean cfu/mL", fill = "Salinity (ppt)") +
+  labs(x = "", y = "Log of Mean cfu/g", fill = "Salinity (ppt)") +
   scale_fill_viridis(end = 0.8)
 ```
 
