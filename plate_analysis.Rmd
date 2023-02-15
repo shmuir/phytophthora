@@ -94,3 +94,8 @@ aov <- aov(log_cfu ~ location, averages)
 summary(aov)
 ```
 
+Tukey Test
+```{r}
+TukeyHSD(aov)
+```
+

@@ -68,3 +68,23 @@ summary(aov)
     ## Residuals   20  3.683  0.1841                     
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Tukey Test
+
+``` r
+TukeyHSD(aov)
+```
+
+    ##   Tukey multiple comparisons of means
+    ##     95% family-wise confidence level
+    ## 
+    ## Fit: aov(formula = log_cfu ~ location, data = averages)
+    ## 
+    ## $location
+    ##             diff         lwr        upr     p adj
+    ## CP-CM -0.9433275 -1.63676515 -0.2498899 0.0055904
+    ## NN-CM -1.3641381 -2.05757568 -0.6707005 0.0001189
+    ## PL-CM -0.2293873 -0.92282486  0.4640504 0.7914449
+    ## NN-CP -0.4208105 -1.11424814  0.2726271 0.3504202
+    ## PL-CP  0.7139403  0.02050268  1.4073779 0.0421714
+    ## PL-NN  1.1347508  0.44131322  1.8281884 0.0009629
