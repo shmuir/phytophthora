@@ -2,7 +2,7 @@
 title: "phyto_mel"
 author: "Sam Muir"
 date: "2023-02-16"
-output: html_document
+output: github_document
 ---
 
 
