@@ -50,47 +50,82 @@ salinity <- salinity %>%
 ```
 
 ```{r echo=FALSE, include=FALSE}
-phyto_salinity <- phyto %>%
+phyto_log <- phyto %>%
   left_join(salinity) %>%
   rename(cfu = `cfu/g`) %>%
-  group_by(location, dilution) %>%
-  filter(date_counted == "2022-11-22" | date_counted == "2022-11-14") %>%
+  mutate(trial = case_when(date_plated == "2022-11-10" ~ "A",
+                           date_plated == "2022-11-18" ~ "B"),
+         incubation = case_when(date_counted == "2022-11-20" ~ "2days",
+                                date_counted == "2022-11-14" | date_counted == "2022-11-22" ~ "4days")) %>%
+  group_by(location, dilution, trial, incubation) %>%
   filter(dilution == "10-1") %>%
-  mutate(log_cfu = log(cfu))
-```
+  mutate(log_cfu = log(cfu),
+         mean_log_cfu = mean(log_cfu),
+         sd_log_cfu = sd(log_cfu))
 
-
-```{r finding averages, include=FALSE}
-averages <- phyto_salinity %>%
-  summarise(mean(log_cfu), sd(log_cfu)) %>%
-  left_join(phyto_salinity)
+phyto_avg <- phyto %>%
+  left_join(salinity) %>%
+  rename(cfu = `cfu/g`) %>%
+  mutate(trial = case_when(date_plated == "2022-11-10" ~ "A",
+                           date_plated == "2022-11-18" ~ "B"),
+         incubation = case_when(date_counted == "2022-11-20" ~ "2days",
+                                date_counted == "2022-11-14" | date_counted == "2022-11-22" ~ "4days")) %>%
+  group_by(location, dilution, incubation, trial) %>%
+  filter(dilution == "10-1") %>%
+  mutate(mean_cfu = mean(cfu),
+         sd_cfu = sd(cfu))
 ```
 
 ## Plotting Averages
+
+Non-transformed data:    
+- Letter indicates trial (1st or second)   
+- days is incubation time
 ```{r}
-ggplot(averages, aes(location, `mean(log_cfu)`, fill = salinity_ppt)) +
+ggplot(phyto_avg, aes(location, mean_cfu, fill = salinity_ppt)) +
   geom_bar(position="dodge", stat = "identity", size = 0.8) +
-  geom_errorbar(aes(ymin=`mean(log_cfu)`-`sd(log_cfu)`, 
-                    ymax=`mean(log_cfu)`+`sd(log_cfu)`), 
+  facet_wrap(~trial + incubation) +
+  geom_errorbar(aes(ymin=mean_cfu-sd_cfu, 
+                    ymax=mean_cfu+sd_cfu), 
                 width=0.2, linewidth = 0.5,
                  position=position_dodge(.9)) +
   theme_linedraw() +
-  scale_x_discrete(labels=c("CM" = "Chapman", "CP" = "Chapel Point",
-                              "NN" = "Newtowne Neck", "PL" = "Point Lookout")) +
+  labs(x = "", y = "Mean cfu/g", fill = "Salinity (ppt)") +
+  scale_fill_viridis(end = 0.8)
+```
+
+Log Transformed Data:    
+- Letter indicates trial (1st or second)    
+- days is incubation time
+```{r}
+ggplot(phyto_log, aes(location, mean_log_cfu, fill = salinity_ppt)) +
+  geom_bar(position="dodge", stat = "identity", size = 0.8) +
+  facet_wrap(~trial+incubation) +
+  geom_errorbar(aes(ymin=mean_log_cfu-sd_log_cfu, 
+                    ymax=mean_log_cfu+sd_log_cfu), 
+                width=0.2, linewidth = 0.5,
+                 position=position_dodge(.9)) +
+  theme_linedraw() +
   labs(x = "", y = "Log of Mean cfu/g", fill = "Salinity (ppt)") +
   scale_fill_viridis(end = 0.8)
 ```
 
-## Statistical Analysis
+## Statistical Analysis - Log-transformed data
+### For after 4 days incubation
+
+```{r echo=FALSE, include=FALSE}
+filter_aov <- phyto_log %>% 
+  filter(date_counted == "2022-11-22")
+```
+
 Levene's Test
 ```{r}
-leveneTest(log_cfu ~ location, averages)
+leveneTest(log_cfu ~ location, filter_aov)
 ```
-Since p > 0.05 there is equal variance and we can perform an ANOVA.
 
 ANOVA
 ```{r}
-aov <- aov(log_cfu ~ location, averages)
+aov <- aov(log_cfu ~ location, filter_aov)
 summary(aov)
 ```
 
@@ -98,4 +133,28 @@ Tukey Test
 ```{r}
 TukeyHSD(aov)
 ```
+
+### For after 2 days incubation
+
+```{r echo=FALSE, include=FALSE}
+filter_aov2 <- phyto_log %>% 
+  filter(date_counted == "2022-11-20")
+```
+
+Levene's Test
+```{r}
+leveneTest(log_cfu ~ location, filter_aov2)
+```
+
+ANOVA
+```{r}
+aov2 <- aov(log_cfu ~ location, filter_aov2)
+summary(aov2)
+```
+
+Tukey Test
+```{r}
+TukeyHSD(aov2)
+```
+
 

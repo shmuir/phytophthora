@@ -1,0 +1,97 @@
+---
+title: "phyto_mel"
+author: "Sam Muir"
+date: "2023-02-16"
+output: html_document
+---
+
+
+```{r echo=FALSE, include=FALSE}
+library(tidyverse)
+library(viridis)
+library(car)
+```
+ 
+```{r echo=FALSE, include=FALSE}
+phyto_mel <- read_csv("platecount.csv")
+```
+
+## Initial data plotting
+
+```{r echo = FALSE}
+ggplot(phyto_mel, aes(CFUsperml, color = Site)) +
+  geom_density() +
+  scale_color_viridis_d() +
+  theme_linedraw()
+```
+ 
+
+```{r echo = FALSE}
+ggplot(phyto_mel, aes(log(CFUsperml), color = Site)) +
+  geom_density() +
+  scale_color_viridis_d() +
+  theme_linedraw()
+```
+
+
+```{r finding averages, include=FALSE}
+avg_log_mel <- phyto_mel %>%
+  group_by(Site) %>%
+  filter(CFUsperml >= 1) %>%
+  mutate(log_cfu = log(CFUsperml),
+         mean_log = mean(log_cfu),
+         sd_log = sd(log_cfu))
+
+avg_mel <- phyto_mel %>%
+  group_by(Site) %>%
+  filter(CFUsperml >= 1) %>%
+  mutate(mean_cfu = mean(CFUsperml),
+         sd_cfu = sd(CFUsperml))
+```
+
+## Plotting Averages
+
+```{r}
+ggplot(avg_mel, aes(reorder(Site, Salinity), mean_cfu, fill = Salinity)) +
+  geom_bar(position="dodge", stat = "identity", size = 0.8) +
+  geom_errorbar(aes(ymin=mean_cfu - sd_cfu, 
+                    ymax= mean_cfu + sd_cfu), 
+                width=0.2, linewidth = 0.5,
+                 position=position_dodge(.9)) +
+  theme_linedraw() +
+  labs(x = "", y = "Mean cfu/mL", fill = "Salinity (ppt)") +
+  scale_fill_viridis(end = 0.8)
+```
+
+Log transformed
+```{r}
+ggplot(avg_log_mel, aes(reorder(Site, Salinity), mean_log, fill = Salinity)) +
+  geom_bar(position="dodge", stat = "identity", size = 0.8) +
+  geom_errorbar(aes(ymin=mean_log - sd_log, 
+                    ymax= mean_log + sd_log), 
+                width=0.2, linewidth = 0.5,
+                 position=position_dodge(.9)) +
+  theme_linedraw() +
+  labs(x = "", y = "Log of Mean cfu/mL", fill = "Salinity (ppt)") +
+  scale_fill_viridis(end = 0.8)
+```
+
+## Statistical Analysis
+### Log transformed data
+Levene's Test
+```{r}
+leveneTest(log_cfu ~ Site, avg_log_mel)
+```
+
+ANOVA
+```{r}
+aov <- aov(log_cfu ~ Site, avg_log_mel)
+summary(aov)
+```
+
+Tukey Test
+```{r}
+TukeyHSD(aov)
+```
+
+

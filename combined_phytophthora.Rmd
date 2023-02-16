@@ -1,0 +1,78 @@
+---
+title: "combined_phytophthora"
+author: "Sam Muir"
+date: "2023-02-16"
+output: html_document
+---
+
+```{r echo=FALSE, include=FALSE}
+library(tidyverse)
+library(viridis)
+library(car)
+```
+
+```{r echo=FALSE, include=FALSE}
+salinity <- read_csv("soil_collection.csv") %>%
+  mutate(site = case_when(site == "chapman" ~ "CM",
+                          site == "chapel" ~ "CP",
+                          site == "point_lookout" ~ "PL",
+                          site == "newtowne" ~ "NN")) %>%
+  rename(location = site)
+phyto_join <- read_csv("data/plate_counts.csv") %>%
+  mutate(season = "2") %>%
+  select(-notes) %>%
+  left_join(salinity) %>%
+  rename(salinity = salinity_ppt,
+         cfu_ml = `cfu/ml`,
+         cfu_g = `cfu/g`) %>%
+  filter(dilution == "10-1",
+         date_counted == "2022-11-22")
+phyto_mel <- read_csv("platecount.csv") %>%
+  mutate(season = "1")
+```
+
+```{r echo=FALSE, include=FALSE}
+phyto_comb <- phyto_mel %>%
+  select(- plate) %>%
+  rename(location = Site,
+         colonies = count,
+         cfu_ml = CFUsperml,
+         salinity = Salinity) %>%
+  mutate(location = case_when(location == "Point Lookout" ~ "PL",
+                              location == "Chapman" ~ "CM",
+                              location == "Chapel Point" ~ "CP",
+                              location == "Newtowne Neck" ~ "NN",
+                              location == "Smallwood" ~ "SW")) %>%
+  full_join(phyto_join) %>%
+  group_by(location, season) %>%
+  mutate(mean_cfu = mean(cfu_ml),
+         sd_cfu = sd(cfu_ml))
+```
+
+## Plotting 
+#### Facet by season: Mel's (1), mine (2)    
+- My data uses counts from the second trial after 4 days incubation
+```{r}
+ggplot(phyto_comb, aes(reorder(location, salinity), mean_cfu, fill = salinity)) +
+  geom_bar(position="dodge", stat = "identity", size = 0.8) +
+  facet_wrap(~season, scales = "free_y") +
+  geom_errorbar(aes(ymin=mean_cfu-sd_cfu, 
+                    ymax=mean_cfu+sd_cfu), 
+                width=0.2, linewidth = 0.5,
+                 position=position_dodge(.9)) +
+  labs(x = "Site", y = "Mean cfu/ml", fill = "Salinity (ppt)") +
+  theme_linedraw() +
+  scale_fill_viridis_c(end = 0.8)
+```
+
+## Statistical Analysis
+ANOVA (location + season)
+```{r}
+aovcomb <- aov(cfu_ml ~ location+season, phyto_comb)
+summary(aovcomb)
+```
+
+```{r}
+TukeyHSD(aovcomb)
+```
+
