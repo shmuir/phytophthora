@@ -68,7 +68,7 @@ ggplot(phyto_comb, aes(reorder(location, salinity), mean_cfu, fill = salinity)) 
 ## Statistical Analysis
 ANOVA (location + season)
 ```{r}
-aovcomb <- aov(cfu_ml ~ location+season, phyto_comb)
+aovcomb <- aov(cfu_ml ~ location+season*location, phyto_comb)
 summary(aovcomb)
 ```
 
