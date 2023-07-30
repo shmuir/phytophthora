@@ -70,6 +70,7 @@ ANOVA (location + season)
 ```{r}
 aovcomb <- aov(cfu_ml ~ location+season*location, phyto_comb)
 summary(aovcomb)
+df.residual(aovcomb)
 ```
 
 ```{r}
